@@ -1,82 +1,79 @@
-import streamlit as st
-from datetime import date
+# JobFlow AI
 
-st.set_page_config(page_title="JobFlow AI", page_icon="📌", layout="wide")
+JobFlow AI is a Python-based job application tracker and follow-up assistant designed to help job seekers manage applications, monitor progress, organize notes, and stay on top of recruiter communication from one place.
 
-if "applications" not in st.session_state:
-st.session_state.applications = [
-{
-"Company": "Google",
-"Role": "Product Analyst",
-"Status": "Applied",
-"Date Applied": "2026-04-01",
-"Notes": "Waiting for recruiter response",
-},
-{
-"Company": "Amazon",
-"Role": "Business Analyst",
-"Status": "Interview",
-"Date Applied": "2026-03-28",
-"Notes": "Interview scheduled next week",
-},
-]
+## Overview
 
-st.title("JobFlow AI")
-st.subheader("Track job applications and follow-ups in one place")
+Job searching often becomes messy across spreadsheets, emails, sticky notes, and scattered reminders. JobFlow AI is being built to solve that problem through a simple product that combines application tracking, workflow visibility, and communication support in one dashboard.
 
-st.markdown("### Dashboard Overview")
+The goal of this project is twofold:
 
-col1, col2, col3, col4 = st.columns(4)
+1. build a practical product with real user value
+2. learn professional GitHub workflows through small, structured feature releases
 
-applications = st.session_state.applications
-total_apps = len(applications)
-interviews = sum(1 for app in applications if app["Status"] == "Interview")
-offers = sum(1 for app in applications if app["Status"] == "Offer")
-follow_ups_due = sum(1 for app in applications if app["Status"] == "Applied")
+## Current Features
 
-with col1:
-st.metric("Applications", total_apps)
+- Streamlit-based dashboard UI
+- Overview metrics for:
+  - total applications
+  - interviews
+  - offers
+  - follow-ups due
+- Job application input form
+- Session-based application tracking
+- Interactive application table
+- Clean starter structure for future backend and database integration
 
-with col2:
-st.metric("Interviews", interviews)
+## Planned Features
 
-with col3:
-st.metric("Offers", offers)
+- SQLite database integration
+- Persistent application storage
+- Edit and delete application entries
+- Recruiter contact management
+- Follow-up reminder tracking
+- Thank-you and follow-up email draft generation
+- Application status timeline
+- FastAPI backend endpoints
+- AI-powered writing assistance for outreach and follow-ups
+- Deployment for public access
 
-with col4:
-st.metric("Follow-ups Due", follow_ups_due)
+## Tech Stack
 
-st.markdown("---")
+### Frontend
 
-st.markdown("### Add New Job Application")
+- Streamlit
 
-with st.form("job_application_form"):
-company = st.text_input("Company")
-role = st.text_input("Role")
-status = st.selectbox("Status", ["Applied", "Interview", "Rejected", "Offer"])
-applied_date = st.date_input("Date Applied", value=date.today())
-notes = st.text_area("Notes")
-submitted = st.form_submit_button("Save Application")
+### Backend
 
-    if submitted:
-        if company.strip() and role.strip():
-            st.session_state.applications.append(
-                {
-                    "Company": company.strip(),
-                    "Role": role.strip(),
-                    "Status": status,
-                    "Date Applied": str(applied_date),
-                    "Notes": notes.strip(),
-                }
-            )
-            st.success(f"Application for {role} at {company} added successfully.")
-        else:
-            st.error("Please enter both company and role.")
+- FastAPI
 
-st.markdown("---")
+### Database
 
-st.markdown("### Tracked Applications")
-st.dataframe(st.session_state.applications, use_container_width=True)
+- SQLite
+- SQLAlchemy
 
-st.markdown("---")
-st.info("Next step: store applications in SQLite instead of temporary session state.")
+### Language
+
+- Python
+
+### Version Control
+
+- Git
+- GitHub
+
+## Project Structure
+
+```text
+jobflow-ai/
+├── app/
+│   ├── backend/
+│   ├── frontend/
+│   │   └── streamlit_app.py
+│   ├── database/
+│   └── models/
+├── README.md
+├── requirements.txt
+├── .gitignore
+└── main.py
+```
+
