@@ -23,6 +23,9 @@ The goal of this project is twofold:
 - Session-based application tracking
 - Interactive application table
 - Clean starter structure for future backend and database integration
+- Edit existing job applications
+- Delete job applications
+- Full basic CRUD workflow for application tracking
 
 ## Planned Features
 
@@ -76,4 +79,3 @@ jobflow-ai/
 ├── .gitignore
 └── main.py
 ```
-
