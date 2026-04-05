@@ -77,5 +77,5 @@ jobflow-ai/
 ├── README.md
 ├── requirements.txt
 ├── .gitignore
-└── main.py
+└── main.py #python
 ```
