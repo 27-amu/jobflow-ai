@@ -26,6 +26,9 @@ The goal of this project is twofold:
 - Edit existing job applications
 - Delete job applications
 - Full basic CRUD workflow for application tracking
+- Search applications by company or role
+- Filter applications by status
+- Dynamic dashboard metrics based on filtered results
 
 ## Planned Features
 

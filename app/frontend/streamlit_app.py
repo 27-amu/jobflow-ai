@@ -1,6 +1,6 @@
 import os
 import sys
-from datetime import date, datetime
+from datetime import date
 
 import streamlit as st
 
@@ -39,43 +39,41 @@ def add_application(company, role, status, applied_date, notes):
         db.close()
 
 
-def update_application(app_id, company, role, status, applied_date, notes):
-    db = SessionLocal()
-    try:
-        application = db.query(JobApplication).filter(JobApplication.id == app_id).first()
-        if application:
-            application.company = company
-            application.role = role
-            application.status = status
-            application.date_applied = str(applied_date)
-            application.notes = notes
-            db.commit()
-    finally:
-        db.close()
-
-
-def delete_application(app_id):
-    db = SessionLocal()
-    try:
-        application = db.query(JobApplication).filter(JobApplication.id == app_id).first()
-        if application:
-            db.delete(application)
-            db.commit()
-    finally:
-        db.close()
-
-
 applications = get_all_applications()
 
 st.title("JobFlow AI")
 st.subheader("Track job applications and follow-ups in one place")
 
+st.markdown("### Search and Filter")
+
+search_term = st.text_input("Search by company or role")
+status_filter = st.selectbox(
+    "Filter by status",
+    ["All", "Applied", "Interview", "Rejected", "Offer"]
+)
+
+filtered_applications = applications
+
+if search_term.strip():
+    query = search_term.strip().lower()
+    filtered_applications = [
+        app for app in filtered_applications
+        if query in app.company.lower() or query in app.role.lower()
+    ]
+
+if status_filter != "All":
+    filtered_applications = [
+        app for app in filtered_applications
+        if app.status == status_filter
+    ]
+
+st.markdown("---")
 st.markdown("### Dashboard Overview")
 
-total_apps = len(applications)
-interviews = sum(1 for app in applications if app.status == "Interview")
-offers = sum(1 for app in applications if app.status == "Offer")
-follow_ups_due = sum(1 for app in applications if app.status == "Applied")
+total_apps = len(filtered_applications)
+interviews = sum(1 for app in filtered_applications if app.status == "Interview")
+offers = sum(1 for app in filtered_applications if app.status == "Offer")
+follow_ups_due = sum(1 for app in filtered_applications if app.status == "Applied")
 
 col1, col2, col3, col4 = st.columns(4)
 
@@ -92,7 +90,6 @@ with col4:
     st.metric("Follow-ups Due", follow_ups_due)
 
 st.markdown("---")
-
 st.markdown("### Add New Job Application")
 
 with st.form("job_application_form"):
@@ -105,7 +102,13 @@ with st.form("job_application_form"):
 
     if submitted:
         if company.strip() and role.strip():
-            add_application(company.strip(), role.strip(), status, applied_date, notes.strip())
+            add_application(
+                company.strip(),
+                role.strip(),
+                status,
+                applied_date,
+                notes.strip()
+            )
             st.success(f"Application for {role} at {company} added successfully.")
             st.rerun()
         else:
@@ -114,71 +117,22 @@ with st.form("job_application_form"):
 st.markdown("---")
 st.markdown("### Tracked Applications")
 
-if applications:
-    table_data = [
-        {
-            "ID": app.id,
-            "Company": app.company,
-            "Role": app.role,
-            "Status": app.status,
-            "Date Applied": app.date_applied,
-            "Notes": app.notes,
-        }
-        for app in applications
-    ]
+table_data = [
+    {
+        "ID": app.id,
+        "Company": app.company,
+        "Role": app.role,
+        "Status": app.status,
+        "Date Applied": app.date_applied,
+        "Notes": app.notes,
+    }
+    for app in filtered_applications
+]
+
+if table_data:
     st.dataframe(table_data, use_container_width=True)
 else:
-    st.warning("No applications tracked yet.")
+    st.warning("No applications match your current search/filter.")
 
 st.markdown("---")
-st.markdown("### Manage Existing Application")
-
-if applications:
-    selected_option = st.selectbox(
-        "Select an application",
-        options=applications,
-        format_func=lambda app: f"{app.id} - {app.company} | {app.role} | {app.status}",
-    )
-
-    default_date = datetime.strptime(selected_option.date_applied, "%Y-%m-%d").date()
-
-    with st.form("edit_application_form"):
-        edit_company = st.text_input("Edit Company", value=selected_option.company)
-        edit_role = st.text_input("Edit Role", value=selected_option.role)
-        edit_status = st.selectbox(
-            "Edit Status",
-            ["Applied", "Interview", "Rejected", "Offer"],
-            index=["Applied", "Interview", "Rejected", "Offer"].index(selected_option.status),
-        )
-        edit_date = st.date_input("Edit Date Applied", value=default_date)
-        edit_notes = st.text_area("Edit Notes", value=selected_option.notes or "")
-        col_save, col_delete = st.columns(2)
-
-        with col_save:
-            save_clicked = st.form_submit_button("Update Application")
-
-        with col_delete:
-            delete_clicked = st.form_submit_button("Delete Application")
-
-        if save_clicked:
-            if edit_company.strip() and edit_role.strip():
-                update_application(
-                    selected_option.id,
-                    edit_company.strip(),
-                    edit_role.strip(),
-                    edit_status,
-                    edit_date,
-                    edit_notes.strip(),
-                )
-                st.success("Application updated successfully.")
-                st.rerun()
-            else:
-                st.error("Company and role cannot be empty.")
-
-        if delete_clicked:
-            delete_application(selected_option.id)
-            st.success("Application deleted successfully.")
-            st.rerun()
-
-st.markdown("---")
-st.info("You can now add, update, and delete applications.")
+st.info("You can now search applications and filter them by status.")
