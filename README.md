@@ -29,6 +29,8 @@ The goal of this project is twofold:
 - Search applications by company or role
 - Filter applications by status
 - Dynamic dashboard metrics based on filtered results
+- Export visible application records to CSV
+- Export respects current search and filter state
 
 ## Planned Features
 
