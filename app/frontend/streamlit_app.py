@@ -1,7 +1,7 @@
 import os
 import sys
 from datetime import date
-
+import pandas as pd
 import streamlit as st
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
@@ -131,8 +131,18 @@ table_data = [
 
 if table_data:
     st.dataframe(table_data, use_container_width=True)
+
+    df = pd.DataFrame(table_data)
+    csv_data = df.to_csv(index=False).encode("utf-8")
+
+    st.download_button(
+        label="Export to CSV",
+        data=csv_data,
+        file_name="jobflow_applications.csv",
+        mime="text/csv",
+    )
 else:
     st.warning("No applications match your current search/filter.")
 
 st.markdown("---")
-st.info("You can now search applications and filter them by status.")
+st.info("You can now search, filter, and export applications to CSV.")
