@@ -31,6 +31,8 @@ The goal of this project is twofold:
 - Dynamic dashboard metrics based on filtered results
 - Export visible application records to CSV
 - Export respects current search and filter state
+- Recruiter name and recruiter email tracking
+- Recruiter fields included in the application table and CSV export
 
 ## Planned Features
 

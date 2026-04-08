@@ -23,7 +23,7 @@ def get_all_applications():
         db.close()
 
 
-def add_application(company, role, status, applied_date, notes):
+def add_application(company, role, status, applied_date, recruiter_name, recruiter_email, notes):
     db = SessionLocal()
     try:
         new_application = JobApplication(
@@ -31,6 +31,8 @@ def add_application(company, role, status, applied_date, notes):
             role=role,
             status=status,
             date_applied=str(applied_date),
+            recruiter_name=recruiter_name,
+            recruiter_email=recruiter_email,
             notes=notes,
         )
         db.add(new_application)
@@ -97,6 +99,8 @@ with st.form("job_application_form"):
     role = st.text_input("Role")
     status = st.selectbox("Status", ["Applied", "Interview", "Rejected", "Offer"])
     applied_date = st.date_input("Date Applied", value=date.today())
+    recruiter_name = st.text_input("Recruiter Name")
+    recruiter_email = st.text_input("Recruiter Email")
     notes = st.text_area("Notes")
     submitted = st.form_submit_button("Save Application")
 
@@ -107,6 +111,8 @@ with st.form("job_application_form"):
                 role.strip(),
                 status,
                 applied_date,
+                recruiter_name.strip(),
+                recruiter_email.strip(),
                 notes.strip()
             )
             st.success(f"Application for {role} at {company} added successfully.")
@@ -124,6 +130,8 @@ table_data = [
         "Role": app.role,
         "Status": app.status,
         "Date Applied": app.date_applied,
+        "Recruiter Name": app.recruiter_name,
+        "Recruiter Email": app.recruiter_email,
         "Notes": app.notes,
     }
     for app in filtered_applications
@@ -145,4 +153,4 @@ else:
     st.warning("No applications match your current search/filter.")
 
 st.markdown("---")
-st.info("You can now search, filter, and export applications to CSV.")
+st.info("You can now track recruiter details for each application.")
