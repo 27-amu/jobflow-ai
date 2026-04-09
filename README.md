@@ -33,6 +33,9 @@ The goal of this project is twofold:
 - Export respects current search and filter state
 - Recruiter name and recruiter email tracking
 - Recruiter fields included in the application table and CSV export
+- Follow-up date tracking for each application
+- Overdue follow-up detection
+- Dashboard count for overdue follow-ups
 
 ## Planned Features
 
