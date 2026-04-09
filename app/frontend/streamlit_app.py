@@ -1,6 +1,6 @@
 import os
 import sys
-from datetime import date
+from datetime import date, datetime
 import pandas as pd
 import streamlit as st
 
@@ -23,7 +23,7 @@ def get_all_applications():
         db.close()
 
 
-def add_application(company, role, status, applied_date, recruiter_name, recruiter_email, notes):
+def add_application(company, role, status, applied_date, recruiter_name, recruiter_email, follow_up_date, notes):
     db = SessionLocal()
     try:
         new_application = JobApplication(
@@ -33,12 +33,22 @@ def add_application(company, role, status, applied_date, recruiter_name, recruit
             date_applied=str(applied_date),
             recruiter_name=recruiter_name,
             recruiter_email=recruiter_email,
+            follow_up_date=str(follow_up_date) if follow_up_date else "",
             notes=notes,
         )
         db.add(new_application)
         db.commit()
     finally:
         db.close()
+
+
+def is_overdue(follow_up_date_value):
+    if not follow_up_date_value:
+        return False
+    try:
+        return datetime.strptime(follow_up_date_value, "%Y-%m-%d").date() < date.today()
+    except ValueError:
+        return False
 
 
 applications = get_all_applications()
@@ -75,9 +85,16 @@ st.markdown("### Dashboard Overview")
 total_apps = len(filtered_applications)
 interviews = sum(1 for app in filtered_applications if app.status == "Interview")
 offers = sum(1 for app in filtered_applications if app.status == "Offer")
-follow_ups_due = sum(1 for app in filtered_applications if app.status == "Applied")
+follow_ups_due = sum(
+    1 for app in filtered_applications
+    if app.follow_up_date and not is_overdue(app.follow_up_date)
+)
+overdue_followups = sum(
+    1 for app in filtered_applications
+    if is_overdue(app.follow_up_date)
+)
 
-col1, col2, col3, col4 = st.columns(4)
+col1, col2, col3, col4, col5 = st.columns(5)
 
 with col1:
     st.metric("Applications", total_apps)
@@ -91,6 +108,9 @@ with col3:
 with col4:
     st.metric("Follow-ups Due", follow_ups_due)
 
+with col5:
+    st.metric("Overdue", overdue_followups)
+
 st.markdown("---")
 st.markdown("### Add New Job Application")
 
@@ -101,6 +121,7 @@ with st.form("job_application_form"):
     applied_date = st.date_input("Date Applied", value=date.today())
     recruiter_name = st.text_input("Recruiter Name")
     recruiter_email = st.text_input("Recruiter Email")
+    follow_up_date = st.date_input("Follow-up Date", value=None)
     notes = st.text_area("Notes")
     submitted = st.form_submit_button("Save Application")
 
@@ -113,6 +134,7 @@ with st.form("job_application_form"):
                 applied_date,
                 recruiter_name.strip(),
                 recruiter_email.strip(),
+                follow_up_date,
                 notes.strip()
             )
             st.success(f"Application for {role} at {company} added successfully.")
@@ -123,24 +145,28 @@ with st.form("job_application_form"):
 st.markdown("---")
 st.markdown("### Tracked Applications")
 
-table_data = [
-    {
-        "ID": app.id,
-        "Company": app.company,
-        "Role": app.role,
-        "Status": app.status,
-        "Date Applied": app.date_applied,
-        "Recruiter Name": app.recruiter_name,
-        "Recruiter Email": app.recruiter_email,
-        "Notes": app.notes,
-    }
-    for app in filtered_applications
-]
+table_data = []
+for app in filtered_applications:
+    overdue_flag = "Yes" if is_overdue(app.follow_up_date) else "No"
+    table_data.append(
+        {
+            "ID": app.id,
+            "Company": app.company,
+            "Role": app.role,
+            "Status": app.status,
+            "Date Applied": app.date_applied,
+            "Recruiter Name": app.recruiter_name,
+            "Recruiter Email": app.recruiter_email,
+            "Follow-up Date": app.follow_up_date,
+            "Overdue": overdue_flag,
+            "Notes": app.notes,
+        }
+    )
 
 if table_data:
-    st.dataframe(table_data, use_container_width=True)
-
     df = pd.DataFrame(table_data)
+    st.dataframe(df, use_container_width=True)
+
     csv_data = df.to_csv(index=False).encode("utf-8")
 
     st.download_button(
@@ -149,8 +175,12 @@ if table_data:
         file_name="jobflow_applications.csv",
         mime="text/csv",
     )
+
+    overdue_items = [row for row in table_data if row["Overdue"] == "Yes"]
+    if overdue_items:
+        st.warning(f"You have {len(overdue_items)} overdue follow-up(s).")
 else:
     st.warning("No applications match your current search/filter.")
 
 st.markdown("---")
-st.info("You can now track recruiter details for each application.")
+st.info("You can now track follow-up dates and identify overdue applications.")

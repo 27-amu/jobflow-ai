@@ -11,4 +11,5 @@ class JobApplication(Base):
     date_applied = Column(String, nullable=False)
     recruiter_name = Column(String, nullable=True)
     recruiter_email = Column(String, nullable=True)
+    follow_up_date = Column(String, nullable=True)
     notes = Column(Text, nullable=True)
