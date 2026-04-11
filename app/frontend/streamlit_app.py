@@ -42,6 +42,24 @@ def add_application(company, role, status, applied_date, recruiter_name, recruit
         db.close()
 
 
+def update_application(app_id, company, role, status, applied_date, recruiter_name, recruiter_email, follow_up_date, notes):
+    db = SessionLocal()
+    try:
+        application = db.query(JobApplication).filter(JobApplication.id == app_id).first()
+        if application:
+            application.company = company
+            application.role = role
+            application.status = status
+            application.date_applied = str(applied_date)
+            application.recruiter_name = recruiter_name
+            application.recruiter_email = recruiter_email
+            application.follow_up_date = str(follow_up_date) if follow_up_date else ""
+            application.notes = notes
+            db.commit()
+    finally:
+        db.close()
+
+
 def is_overdue(follow_up_date_value):
     if not follow_up_date_value:
         return False
@@ -98,16 +116,12 @@ col1, col2, col3, col4, col5 = st.columns(5)
 
 with col1:
     st.metric("Applications", total_apps)
-
 with col2:
     st.metric("Interviews", interviews)
-
 with col3:
     st.metric("Offers", offers)
-
 with col4:
     st.metric("Follow-ups Due", follow_ups_due)
-
 with col5:
     st.metric("Overdue", overdue_followups)
 
@@ -147,7 +161,6 @@ st.markdown("### Tracked Applications")
 
 table_data = []
 for app in filtered_applications:
-    overdue_flag = "Yes" if is_overdue(app.follow_up_date) else "No"
     table_data.append(
         {
             "ID": app.id,
@@ -158,7 +171,7 @@ for app in filtered_applications:
             "Recruiter Name": app.recruiter_name,
             "Recruiter Email": app.recruiter_email,
             "Follow-up Date": app.follow_up_date,
-            "Overdue": overdue_flag,
+            "Overdue": "Yes" if is_overdue(app.follow_up_date) else "No",
             "Notes": app.notes,
         }
     )
@@ -168,19 +181,67 @@ if table_data:
     st.dataframe(df, use_container_width=True)
 
     csv_data = df.to_csv(index=False).encode("utf-8")
-
     st.download_button(
         label="Export to CSV",
         data=csv_data,
         file_name="jobflow_applications.csv",
         mime="text/csv",
     )
-
-    overdue_items = [row for row in table_data if row["Overdue"] == "Yes"]
-    if overdue_items:
-        st.warning(f"You have {len(overdue_items)} overdue follow-up(s).")
 else:
     st.warning("No applications match your current search/filter.")
 
 st.markdown("---")
-st.info("You can now track follow-up dates and identify overdue applications.")
+st.markdown("### Edit Existing Application")
+
+if applications:
+    selected_application = st.selectbox(
+        "Select application to edit",
+        options=applications,
+        format_func=lambda app: f"{app.id} - {app.company} | {app.role}"
+    )
+
+    default_applied_date = datetime.strptime(selected_application.date_applied, "%Y-%m-%d").date()
+
+    if selected_application.follow_up_date:
+        try:
+            default_follow_up_date = datetime.strptime(selected_application.follow_up_date, "%Y-%m-%d").date()
+        except ValueError:
+            default_follow_up_date = None
+    else:
+        default_follow_up_date = None
+
+    with st.form("edit_application_form"):
+        edit_company = st.text_input("Edit Company", value=selected_application.company)
+        edit_role = st.text_input("Edit Role", value=selected_application.role)
+        edit_status = st.selectbox(
+            "Edit Status",
+            ["Applied", "Interview", "Rejected", "Offer"],
+            index=["Applied", "Interview", "Rejected", "Offer"].index(selected_application.status),
+        )
+        edit_applied_date = st.date_input("Edit Date Applied", value=default_applied_date)
+        edit_recruiter_name = st.text_input("Edit Recruiter Name", value=selected_application.recruiter_name or "")
+        edit_recruiter_email = st.text_input("Edit Recruiter Email", value=selected_application.recruiter_email or "")
+        edit_follow_up_date = st.date_input("Edit Follow-up Date", value=default_follow_up_date)
+        edit_notes = st.text_area("Edit Notes", value=selected_application.notes or "")
+        update_submitted = st.form_submit_button("Update Application")
+
+        if update_submitted:
+            if edit_company.strip() and edit_role.strip():
+                update_application(
+                    selected_application.id,
+                    edit_company.strip(),
+                    edit_role.strip(),
+                    edit_status,
+                    edit_applied_date,
+                    edit_recruiter_name.strip(),
+                    edit_recruiter_email.strip(),
+                    edit_follow_up_date,
+                    edit_notes.strip(),
+                )
+                st.success("Application updated successfully.")
+                st.rerun()
+            else:
+                st.error("Company and role cannot be empty.")
+
+st.markdown("---")
+st.info("You can now edit existing applications without resetting the database.")

@@ -36,6 +36,8 @@ The goal of this project is twofold:
 - Follow-up date tracking for each application
 - Overdue follow-up detection
 - Dashboard count for overdue follow-ups
+- Edit existing job applications
+- Update recruiter and follow-up details for saved records
 
 ## Planned Features
 
