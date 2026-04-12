@@ -38,6 +38,8 @@ The goal of this project is twofold:
 - Dashboard count for overdue follow-ups
 - Edit existing job applications
 - Update recruiter and follow-up details for saved records
+- Delete saved job applications with confirmation
+- Complete CRUD workflow for job application tracking
 
 ## Planned Features
 
