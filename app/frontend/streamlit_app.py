@@ -60,6 +60,17 @@ def update_application(app_id, company, role, status, applied_date, recruiter_na
         db.close()
 
 
+def delete_application(app_id):
+    db = SessionLocal()
+    try:
+        application = db.query(JobApplication).filter(JobApplication.id == app_id).first()
+        if application:
+            db.delete(application)
+            db.commit()
+    finally:
+        db.close()
+
+
 def is_overdue(follow_up_date_value):
     if not follow_up_date_value:
         return False
@@ -244,4 +255,28 @@ if applications:
                 st.error("Company and role cannot be empty.")
 
 st.markdown("---")
-st.info("You can now edit existing applications without resetting the database.")
+st.markdown("### Delete Application")
+
+if applications:
+    selected_delete_application = st.selectbox(
+        "Select application to delete",
+        options=applications,
+        format_func=lambda app: f"{app.id} - {app.company} | {app.role}",
+        key="delete_selectbox"
+    )
+
+    confirm_delete = st.checkbox(
+        f"I understand this will permanently delete application #{selected_delete_application.id}",
+        key="confirm_delete_checkbox"
+    )
+
+    if st.button("Delete Selected Application"):
+        if confirm_delete:
+            delete_application(selected_delete_application.id)
+            st.success("Application deleted successfully.")
+            st.rerun()
+        else:
+            st.error("Please confirm deletion before proceeding.")
+
+st.markdown("---")
+st.info("You can now add, edit, export, and safely delete applications.")
