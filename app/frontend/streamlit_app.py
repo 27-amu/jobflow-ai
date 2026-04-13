@@ -80,12 +80,59 @@ def is_overdue(follow_up_date_value):
         return False
 
 
+def status_badge(status):
+    colors = {
+        "Applied": "#1f77b4",
+        "Interview": "#ff7f0e",
+        "Rejected": "#d62728",
+        "Offer": "#2ca02c",
+    }
+    color = colors.get(status, "#6b7280")
+    return f"""
+    <span style="
+        background-color:{color};
+        color:white;
+        padding:4px 10px;
+        border-radius:999px;
+        font-size:12px;
+        font-weight:600;
+        display:inline-block;
+    ">{status}</span>
+    """
+
+
 applications = get_all_applications()
 
 st.title("JobFlow AI")
 st.subheader("Track job applications and follow-ups in one place")
 
-st.markdown("### Search and Filter")
+st.markdown("""
+<style>
+.block-container {
+    padding-top: 2rem;
+    padding-bottom: 2rem;
+}
+.section-title {
+    font-size: 1.2rem;
+    font-weight: 700;
+    margin-top: 1rem;
+    margin-bottom: 0.5rem;
+}
+.metric-card {
+    padding: 14px;
+    border-radius: 14px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    margin-bottom: 12px;
+}
+.small-muted {
+    color: #9ca3af;
+    font-size: 0.9rem;
+}
+</style>
+""", unsafe_allow_html=True)
+
+st.markdown('<div class="section-title">Search and Filter</div>', unsafe_allow_html=True)
 
 search_term = st.text_input("Search by company or role")
 status_filter = st.selectbox(
@@ -109,7 +156,7 @@ if status_filter != "All":
     ]
 
 st.markdown("---")
-st.markdown("### Dashboard Overview")
+st.markdown('<div class="section-title">Dashboard Overview</div>', unsafe_allow_html=True)
 
 total_apps = len(filtered_applications)
 interviews = sum(1 for app in filtered_applications if app.status == "Interview")
@@ -137,7 +184,7 @@ with col5:
     st.metric("Overdue", overdue_followups)
 
 st.markdown("---")
-st.markdown("### Add New Job Application")
+st.markdown('<div class="section-title">Add New Job Application</div>', unsafe_allow_html=True)
 
 with st.form("job_application_form"):
     company = st.text_input("Company")
@@ -168,7 +215,7 @@ with st.form("job_application_form"):
             st.error("Please enter both company and role.")
 
 st.markdown("---")
-st.markdown("### Tracked Applications")
+st.markdown('<div class="section-title">Tracked Applications</div>', unsafe_allow_html=True)
 
 table_data = []
 for app in filtered_applications:
@@ -198,11 +245,22 @@ if table_data:
         file_name="jobflow_applications.csv",
         mime="text/csv",
     )
+
+    st.markdown("#### Status Legend")
+    legend_cols = st.columns(4)
+    with legend_cols[0]:
+        st.markdown(status_badge("Applied"), unsafe_allow_html=True)
+    with legend_cols[1]:
+        st.markdown(status_badge("Interview"), unsafe_allow_html=True)
+    with legend_cols[2]:
+        st.markdown(status_badge("Rejected"), unsafe_allow_html=True)
+    with legend_cols[3]:
+        st.markdown(status_badge("Offer"), unsafe_allow_html=True)
 else:
     st.warning("No applications match your current search/filter.")
 
 st.markdown("---")
-st.markdown("### Edit Existing Application")
+st.markdown('<div class="section-title">Edit Existing Application</div>', unsafe_allow_html=True)
 
 if applications:
     selected_application = st.selectbox(
@@ -220,6 +278,9 @@ if applications:
             default_follow_up_date = None
     else:
         default_follow_up_date = None
+
+    st.markdown("Current status:")
+    st.markdown(status_badge(selected_application.status), unsafe_allow_html=True)
 
     with st.form("edit_application_form"):
         edit_company = st.text_input("Edit Company", value=selected_application.company)
@@ -255,7 +316,7 @@ if applications:
                 st.error("Company and role cannot be empty.")
 
 st.markdown("---")
-st.markdown("### Delete Application")
+st.markdown('<div class="section-title">Delete Application</div>', unsafe_allow_html=True)
 
 if applications:
     selected_delete_application = st.selectbox(
@@ -279,4 +340,4 @@ if applications:
             st.error("Please confirm deletion before proceeding.")
 
 st.markdown("---")
-st.info("You can now add, edit, export, and safely delete applications.")
+st.info("JobFlow AI now has a cleaner UI and clearer status visibility.")
