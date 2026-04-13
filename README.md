@@ -40,6 +40,8 @@ The goal of this project is twofold:
 - Update recruiter and follow-up details for saved records
 - Delete saved job applications with confirmation
 - Complete CRUD workflow for job application tracking
+- Color-coded status legend for application stages
+- Cleaner dashboard layout and visual polish
 
 ## Planned Features
 
