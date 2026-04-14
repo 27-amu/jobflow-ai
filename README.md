@@ -42,6 +42,8 @@ The goal of this project is twofold:
 - Complete CRUD workflow for job application tracking
 - Color-coded status legend for application stages
 - Cleaner dashboard layout and visual polish
+- Sort applications by date applied, company, role, or status
+- Choose ascending or descending order for the visible records
 
 ## Planned Features
 
