@@ -101,6 +101,37 @@ def status_badge(status):
     """
 
 
+def sort_applications(applications_list, sort_by, sort_order):
+    reverse = sort_order == "Descending"
+
+    if sort_by == "Date Applied":
+        return sorted(
+            applications_list,
+            key=lambda app: datetime.strptime(app.date_applied, "%Y-%m-%d"),
+            reverse=reverse,
+        )
+    elif sort_by == "Company":
+        return sorted(
+            applications_list,
+            key=lambda app: app.company.lower(),
+            reverse=reverse,
+        )
+    elif sort_by == "Role":
+        return sorted(
+            applications_list,
+            key=lambda app: app.role.lower(),
+            reverse=reverse,
+        )
+    elif sort_by == "Status":
+        return sorted(
+            applications_list,
+            key=lambda app: app.status.lower(),
+            reverse=reverse,
+        )
+
+    return applications_list
+
+
 applications = get_all_applications()
 
 st.title("JobFlow AI")
@@ -118,27 +149,33 @@ st.markdown("""
     margin-top: 1rem;
     margin-bottom: 0.5rem;
 }
-.metric-card {
-    padding: 14px;
-    border-radius: 14px;
-    background: rgba(255,255,255,0.04);
-    border: 1px solid rgba(255,255,255,0.08);
-    margin-bottom: 12px;
-}
-.small-muted {
-    color: #9ca3af;
-    font-size: 0.9rem;
-}
 </style>
 """, unsafe_allow_html=True)
 
-st.markdown('<div class="section-title">Search and Filter</div>', unsafe_allow_html=True)
+st.markdown('<div class="section-title">Search, Filter, and Sort</div>', unsafe_allow_html=True)
 
-search_term = st.text_input("Search by company or role")
-status_filter = st.selectbox(
-    "Filter by status",
-    ["All", "Applied", "Interview", "Rejected", "Offer"]
-)
+filter_col1, filter_col2, filter_col3, filter_col4 = st.columns(4)
+
+with filter_col1:
+    search_term = st.text_input("Search by company or role")
+
+with filter_col2:
+    status_filter = st.selectbox(
+        "Filter by status",
+        ["All", "Applied", "Interview", "Rejected", "Offer"]
+    )
+
+with filter_col3:
+    sort_by = st.selectbox(
+        "Sort by",
+        ["Date Applied", "Company", "Role", "Status"]
+    )
+
+with filter_col4:
+    sort_order = st.selectbox(
+        "Order",
+        ["Descending", "Ascending"]
+    )
 
 filtered_applications = applications
 
@@ -154,6 +191,8 @@ if status_filter != "All":
         app for app in filtered_applications
         if app.status == status_filter
     ]
+
+filtered_applications = sort_applications(filtered_applications, sort_by, sort_order)
 
 st.markdown("---")
 st.markdown('<div class="section-title">Dashboard Overview</div>', unsafe_allow_html=True)
@@ -340,4 +379,4 @@ if applications:
             st.error("Please confirm deletion before proceeding.")
 
 st.markdown("---")
-st.info("JobFlow AI now has a cleaner UI and clearer status visibility.")
+st.info("JobFlow AI now supports sorting for faster application review.")
