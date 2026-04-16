@@ -44,6 +44,8 @@ The goal of this project is twofold:
 - Cleaner dashboard layout and visual polish
 - Sort applications by date applied, company, role, or status
 - Choose ascending or descending order for the visible records
+- Notes preview in the application table
+- Dedicated application details view for full record visibility
 
 ## Planned Features
 
