@@ -111,25 +111,19 @@ def sort_applications(applications_list, sort_by, sort_order):
             reverse=reverse,
         )
     elif sort_by == "Company":
-        return sorted(
-            applications_list,
-            key=lambda app: app.company.lower(),
-            reverse=reverse,
-        )
+        return sorted(applications_list, key=lambda app: app.company.lower(), reverse=reverse)
     elif sort_by == "Role":
-        return sorted(
-            applications_list,
-            key=lambda app: app.role.lower(),
-            reverse=reverse,
-        )
+        return sorted(applications_list, key=lambda app: app.role.lower(), reverse=reverse)
     elif sort_by == "Status":
-        return sorted(
-            applications_list,
-            key=lambda app: app.status.lower(),
-            reverse=reverse,
-        )
+        return sorted(applications_list, key=lambda app: app.status.lower(), reverse=reverse)
 
     return applications_list
+
+
+def note_preview(text, limit=40):
+    if not text:
+        return ""
+    return text if len(text) <= limit else text[:limit] + "..."
 
 
 applications = get_all_applications()
@@ -148,6 +142,13 @@ st.markdown("""
     font-weight: 700;
     margin-top: 1rem;
     margin-bottom: 0.5rem;
+}
+.detail-card {
+    padding: 16px;
+    border-radius: 14px;
+    border: 1px solid rgba(255,255,255,0.08);
+    background: rgba(255,255,255,0.03);
+    margin-top: 10px;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -269,7 +270,7 @@ for app in filtered_applications:
             "Recruiter Email": app.recruiter_email,
             "Follow-up Date": app.follow_up_date,
             "Overdue": "Yes" if is_overdue(app.follow_up_date) else "No",
-            "Notes": app.notes,
+            "Notes Preview": note_preview(app.notes),
         }
     )
 
@@ -297,6 +298,30 @@ if table_data:
         st.markdown(status_badge("Offer"), unsafe_allow_html=True)
 else:
     st.warning("No applications match your current search/filter.")
+
+st.markdown("---")
+st.markdown('<div class="section-title">Application Details</div>', unsafe_allow_html=True)
+
+if filtered_applications:
+    selected_detail_application = st.selectbox(
+        "Select application to view details",
+        options=filtered_applications,
+        format_func=lambda app: f"{app.id} - {app.company} | {app.role}",
+        key="detail_selectbox"
+    )
+
+    st.markdown('<div class="detail-card">', unsafe_allow_html=True)
+    st.markdown(f"**Company:** {selected_detail_application.company}")
+    st.markdown(f"**Role:** {selected_detail_application.role}")
+    st.markdown("**Status:**", unsafe_allow_html=True)
+    st.markdown(status_badge(selected_detail_application.status), unsafe_allow_html=True)
+    st.markdown(f"**Date Applied:** {selected_detail_application.date_applied}")
+    st.markdown(f"**Recruiter Name:** {selected_detail_application.recruiter_name or '—'}")
+    st.markdown(f"**Recruiter Email:** {selected_detail_application.recruiter_email or '—'}")
+    st.markdown(f"**Follow-up Date:** {selected_detail_application.follow_up_date or '—'}")
+    st.markdown(f"**Overdue:** {'Yes' if is_overdue(selected_detail_application.follow_up_date) else 'No'}")
+    st.markdown(f"**Full Notes:** {selected_detail_application.notes or '—'}")
+    st.markdown('</div>', unsafe_allow_html=True)
 
 st.markdown("---")
 st.markdown('<div class="section-title">Edit Existing Application</div>', unsafe_allow_html=True)
@@ -379,4 +404,4 @@ if applications:
             st.error("Please confirm deletion before proceeding.")
 
 st.markdown("---")
-st.info("JobFlow AI now supports sorting for faster application review.")
+st.info("JobFlow AI now includes notes preview and a dedicated application details view.")
